@@ -18,20 +18,16 @@ const Vote = require("../models/Vote");
 
 const multer = require("multer");
 const cloudinary = require("../cloudinary");
+const streamifier = require("streamifier");
 
 // stockage temporaire en mémoire
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// upload d'un nominé
+// POST /api/nomines
 router.post("/", upload.single("photo"), async (req, res) => {
   try {
-    // vérifier que req.file existe
-    if (!req.file) {
-      return res.status(400).json({ message: "Aucune image envoyée" });
-    }
-
-    // debugger : vérifier ce que Multer reçoit
+    // Debugger : vérifier ce que Multer reçoit
     console.log("req.body:", req.body);
     console.log("req.file:", req.file);
 
@@ -41,31 +37,42 @@ router.post("/", upload.single("photo"), async (req, res) => {
       return res.status(400).json({ message: "Tous les champs sont requis" });
     }
 
-    // upload sur Cloudinary
-    const streamifier = require("streamifier");
-    const uploadStream = cloudinary.uploader.upload_stream(
-      { folder: "nomines" },
-      async (err, result) => {
-        if (err) return res.status(500).json({ message: "Erreur Cloudinary", err });
+    if (!req.file) {
+      return res.status(400).json({ message: "Aucune image envoyée" });
+    }
 
-        // sauvegarde dans MongoDB
-        const nomine = new Nomine({
-          nomComplet,
-          biographie,
-          categoryId,
-          photoUrl: result.secure_url
-        });
+    // Fonction helper pour upload Cloudinary en Promise
+    const uploadFromBuffer = (fileBuffer) => {
+      return new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: "nomines" },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        streamifier.createReadStream(fileBuffer).pipe(uploadStream);
+      });
+    };
 
-        await nomine.save();
-        res.status(201).json({ message: "Nominé enregistré ✅", nomine });
-      }
-    );
+    // Upload de l'image
+    const result = await uploadFromBuffer(req.file.buffer);
 
-    streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+    // Création du nominé dans MongoDB
+    const nomine = new Nomine({
+      nomComplet,
+      biographie,
+      categoryId,
+      photoUrl: result.secure_url
+    });
 
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Erreur serveur", error });
+    await nomine.save();
+
+    res.status(201).json({ message: "Nominé enregistré ✅", nomine });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erreur serveur", error: err });
   }
 });
 
