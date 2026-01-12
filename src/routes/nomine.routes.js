@@ -6,15 +6,69 @@ const Nomine = require("../models/Nomine");
 const Vote = require("../models/Vote");
 
 // CREATE nominé
-router.post("/", async (req, res) => {
+// router.post("/", async (req, res) => {
+//   try {
+//     const nomine = new Nomine(req.body);
+//     await nomine.save();
+//     res.status(201).json(nomine);
+//   } catch (error) {
+//     res.status(400).json({ message: error.message });
+//   }
+// });
+
+const multer = require("multer");
+const cloudinary = require("../cloudinary");
+
+// stockage temporaire en mémoire
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
+
+// upload d'un nominé
+router.post("/", upload.single("photo"), async (req, res) => {
   try {
-    const nomine = new Nomine(req.body);
-    await nomine.save();
-    res.status(201).json(nomine);
+    // vérifier que req.file existe
+    if (!req.file) {
+      return res.status(400).json({ message: "Aucune image envoyée" });
+    }
+
+    // debugger : vérifier ce que Multer reçoit
+    console.log("req.body:", req.body);
+    console.log("req.file:", req.file);
+
+    const { nomComplet, biographie, categoryId } = req.body;
+
+    if (!nomComplet || !biographie || !categoryId) {
+      return res.status(400).json({ message: "Tous les champs sont requis" });
+    }
+
+    // upload sur Cloudinary
+    const streamifier = require("streamifier");
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { folder: "nomines" },
+      async (err, result) => {
+        if (err) return res.status(500).json({ message: "Erreur Cloudinary", err });
+
+        // sauvegarde dans MongoDB
+        const nomine = new Nomine({
+          nomComplet,
+          biographie,
+          categoryId,
+          photoUrl: result.secure_url
+        });
+
+        await nomine.save();
+        res.status(201).json({ message: "Nominé enregistré ✅", nomine });
+      }
+    );
+
+    streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error(error);
+    res.status(500).json({ message: "Erreur serveur", error });
   }
 });
+
 
 // READ nominés par catégorie
 // router.get("/categorie/:categorieId", async (req, res) => {
