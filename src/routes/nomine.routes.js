@@ -41,8 +41,7 @@ router.post("/", upload.single("photo"), async (req, res) => {
       return res.status(400).json({ message: "Aucune image envoyée" });
     }
 
-    console.log("Cloudinary config:", cloudinary.config());
-
+    
     // Fonction helper pour upload Cloudinary en Promise
     const uploadFromBuffer = (fileBuffer) => {
       return new Promise((resolve, reject) => {
@@ -56,6 +55,8 @@ router.post("/", upload.single("photo"), async (req, res) => {
         streamifier.createReadStream(fileBuffer).pipe(uploadStream);
       });
     };
+    
+    console.log("Cloudinary config:", cloudinary.config());
 
     // Upload de l'image
     const result = await uploadFromBuffer(req.file.buffer);
@@ -65,7 +66,7 @@ router.post("/", upload.single("photo"), async (req, res) => {
       nomComplet,
       biographie,
       categoryId,
-      photoUrl: result.secure_url
+      photo: result.secure_url
     });
 
     await nomine.save();
