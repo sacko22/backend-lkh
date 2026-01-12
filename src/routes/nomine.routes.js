@@ -41,6 +41,8 @@ router.post("/", upload.single("photo"), async (req, res) => {
       return res.status(400).json({ message: "Aucune image envoyée" });
     }
 
+    console.log("Cloudinary config:", cloudinary.config());
+
     // Fonction helper pour upload Cloudinary en Promise
     const uploadFromBuffer = (fileBuffer) => {
       return new Promise((resolve, reject) => {
