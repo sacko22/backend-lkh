@@ -21,7 +21,7 @@ app.use(cors({
 app.use(express.json());
 
 
-app.use("/api/contact", require("./routes/contact"));
+app.use("/api/contact", require("./routes/contact.routes"));
 
 app.use("/api/categories", categoryRoutes);
 app.use("/api/nomines", nomineRoutes);
