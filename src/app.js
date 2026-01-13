@@ -20,6 +20,9 @@ app.use(cors({
 })); // POUR DONNER accès à n'importe quel site 
 app.use(express.json());
 
+
+app.use("/api/contact", require("./routes/contact"));
+
 app.use("/api/categories", categoryRoutes);
 app.use("/api/nomines", nomineRoutes);
 app.use("/api/votes", voteRoutes);
