@@ -3,6 +3,8 @@ const router = express.Router();
 const nodemailer = require("nodemailer");
 
 router.post("/", async (req, res) => {
+  console.log("Contact body:", req.body);
+
   const { nom, prenom, email, message } = req.body;
 
   if (!nom || !prenom || !email || !message) {
@@ -18,9 +20,12 @@ router.post("/", async (req, res) => {
       },
     });
 
+    await transporter.verify(); // 🔥 test de connexion SMTP
+
     await transporter.sendMail({
       from: `"Contact LKH" <${process.env.EMAIL_USER}>`,
-      to: "lkhlumiereskamsaroiseshonors@gmail.com",
+      to: process.env.EMAIL_USER,
+      replyTo: email, // 👈 très important
       subject: "Nouveau message depuis le site LKH",
       html: `
         <h3>Nouveau message depuis le site LKH</h3>
@@ -33,8 +38,11 @@ router.post("/", async (req, res) => {
     res.status(200).json({ message: "Message envoyé avec succès ✅" });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Erreur lors de l’envoi du message" });
+    console.error("Erreur mail:", error);
+    res.status(500).json({
+      message: "Erreur lors de l’envoi du message",
+      error: error.message
+    });
   }
 });
 

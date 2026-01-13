@@ -19,6 +19,7 @@ app.use(cors({
   origin: "*"
 })); // POUR DONNER accès à n'importe quel site 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 
 app.use("/api/contact", require("./routes/contact.routes"));
