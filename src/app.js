@@ -16,8 +16,11 @@ const app = express();
 connectDB();
 
 app.use(cors({
-  origin: "*"
-})); // POUR DONNER accès à n'importe quel site 
+  origin: "https://frontend-lkh.onrender.com", // ton domaine
+  methods: ["GET", "POST"],
+  credentials: true
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

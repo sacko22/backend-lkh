@@ -3,9 +3,11 @@ const router = express.Router();
 const Vote = require("../models/Vote");
 const Nomine = require("../models/Nomine");
 const Setting = require("../models/Setting");
+const verifyToken = require("../middleware/verifyToken");
+
 
 // VOTER
-router.post("/", async (req, res) => {
+router.post("/",verifyToken, async (req, res) => {
   const setting = await Setting.findOne();
 
   if (!setting || !setting.voteActif) {
