@@ -1,15 +1,16 @@
 const express = require("express");
 const router = express.Router();
 const Setting = require("../models/Setting");
+const verifyToken = require("../middleware/verifyToken");
 
 // GET settings
-router.get("/", async (req, res) => {
+router.get("/",verifyToken, async (req, res) => {
   const setting = await Setting.findOne();
   res.json(setting);
 });
 
 // CREATE ou UPDATE
-router.post("/", async (req, res) => {
+router.post("/",verifyToken, async (req, res) => {
   const setting = await Setting.findOneAndUpdate(
     {},
     req.body,

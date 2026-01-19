@@ -1,9 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const Category = require("../models/Category");
+const verifyToken = require("../middleware/verifyToken");
 
 // CREATE catégorie
-router.post("/", async (req, res) => {
+router.post("/",verifyToken, async (req, res) => {
   try {
     const category = new Category(req.body);
     await category.save();
@@ -26,7 +27,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // UPDATE catégorie
-router.put("/:id", async (req, res) => {
+router.put("/:id",verifyToken, async (req, res) => {
   const category = await Category.findByIdAndUpdate(
     req.params.id,
     req.body,
@@ -36,7 +37,7 @@ router.put("/:id", async (req, res) => {
 });
 
 // DELETE (soft)
-router.delete("/:id", async (req, res) => {
+router.delete("/:id",verifyToken, async (req, res) => {
   const category = await Category.findByIdAndUpdate(
     req.params.id,
     { active: false },

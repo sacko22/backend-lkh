@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 
 const Nomine = require("../models/Nomine");
 const Vote = require("../models/Vote");
+const verifyToken = require("../middleware/verifyToken");
 
 // CREATE nominé
 // router.post("/", async (req, res) => {
@@ -25,7 +26,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 // POST /api/nomines
-router.post("/", upload.single("photo"), async (req, res) => {
+router.post("/",verifyToken, upload.single("photo"), async (req, res) => {
   try {
     // Debugger : vérifier ce que Multer reçoit
     console.log("req.body:", req.body);
